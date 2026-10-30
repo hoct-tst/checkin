@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en"> 
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -51,6 +51,10 @@
                 <svg id="success-icon" class="w-24 h-24 text-green-500 hidden animate-bounce" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
+                <!-- SVG Amber Exclamation (Warning - Tickets Taken) -->
+                <svg id="warning-icon" class="w-24 h-24 text-amber-500 hidden animate-bounce" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
                 <!-- SVG Red X (Error) -->
                 <svg id="error-icon" class="w-24 h-24 text-red-500 hidden animate-bounce" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -70,6 +74,7 @@
         const messageDisplay = document.getElementById('message');
         const resultIndicator = document.getElementById('result-indicator');
         const successIcon = document.getElementById('success-icon');
+        const warningIcon = document.getElementById('warning-icon');
         const errorIcon = document.getElementById('error-icon');
         const resetButton = document.getElementById('reset-button');
         const urlStatus = document.getElementById('url-status');
@@ -92,6 +97,22 @@
                 </div>
             `;
             successIcon.classList.remove('hidden');
+            warningIcon.classList.add('hidden');
+            errorIcon.classList.add('hidden');
+            resultIndicator.classList.remove('hidden');
+            document.getElementById('scanner-container').classList.add('hidden');
+        }
+
+        function showWarning(email) {
+            messageDisplay.innerHTML = `
+                <div class="text-amber-600 font-bold text-xl mb-1">Attention</div>
+                <div class="text-gray-700 text-base mb-3">${email}</div>
+                <div class="inline-block bg-amber-100 text-amber-800 text-lg font-bold px-4 py-2 rounded-lg border border-amber-200 shadow-sm">
+                    ⚠️ Tickets have been taken.
+                </div>
+            `;
+            warningIcon.classList.remove('hidden');
+            successIcon.classList.add('hidden');
             errorIcon.classList.add('hidden');
             resultIndicator.classList.remove('hidden');
             document.getElementById('scanner-container').classList.add('hidden');
@@ -101,6 +122,7 @@
             messageDisplay.innerHTML = `Record not found for: <br><span class="font-bold text-gray-800">${email}</span>`;
             errorIcon.classList.remove('hidden');
             successIcon.classList.add('hidden');
+            warningIcon.classList.add('hidden');
             resultIndicator.classList.remove('hidden');
             document.getElementById('scanner-container').classList.add('hidden');
         }
@@ -109,6 +131,7 @@
             messageDisplay.textContent = msg;
             errorIcon.classList.remove('hidden');
             successIcon.classList.add('hidden');
+            warningIcon.classList.add('hidden');
             resultIndicator.classList.remove('hidden');
             document.getElementById('scanner-container').classList.add('hidden');
         }
@@ -116,6 +139,7 @@
         function resetScanner() {
             resultIndicator.classList.add('hidden');
             successIcon.classList.add('hidden');
+            warningIcon.classList.add('hidden');
             errorIcon.classList.add('hidden');
             document.getElementById('scanner-container').classList.remove('hidden');
             messageDisplay.textContent = 'Ready to scan...';
@@ -154,7 +178,12 @@
                 const data = await response.json();
 
                 if (data.result === 'success') {
-                    showSuccess(email, data.tickets);
+                    // Check if ticket count is -1 (taken)
+                    if (data.tickets == -1) {
+                        showWarning(email);
+                    } else {
+                        showSuccess(email, data.tickets);
+                    }
                 } else {
                     showNotFound(email);
                 }
